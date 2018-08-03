@@ -1,0 +1,9 @@
+{application,coins,
+             [{applications,[kernel,stdlib,elixir,logger,jason,httpoison]},
+              {description,"coins"},
+              {modules,['Elixir.Coins','Elixir.Coins.Application',
+                        'Elixir.Coins.CoinData',
+                        'Elixir.Coins.CoinDataWorker']},
+              {registered,[]},
+              {vsn,"0.1.0"},
+              {mod,{'Elixir.Coins.Application',[]}}]}.
