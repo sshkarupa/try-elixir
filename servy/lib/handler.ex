@@ -2,8 +2,10 @@ defmodule Servy.Handler do
   def handle(request) do
     request
     |> parse
+    |> rewrite_path
     |> log
     |> route
+    |> track
     |> format_response
   end
 
@@ -17,27 +19,36 @@ defmodule Servy.Handler do
     %{method: method, path: path, resp_body: "", status: nil}
   end
 
-  def log(conv), do: IO.inspect conv
-
-  def route(conv) do
-    route(conv, conv.method, conv.path)
+  def rewrite_path(%{path: "/wildlife"} = conv) do
+    %{conv | path: "/wildthings"}
   end
 
-  def route(conv, "GET", "/wildthings") do
+  def rewrite_path(conv), do: conv
+
+  def log(conv), do: IO.inspect conv
+
+  def route(%{method: "GET", path: "/wildthings"} = conv) do
     %{conv | status: 200, resp_body: "Bears, Lions, Tigers"}
   end
 
-  def route(conv, "GET", "/bears") do
+  def route(%{method: "GET", path: "/bears"} = conv) do
     %{conv | status: 200, resp_body: "Teddy, Smokey, Paddington"}
   end
 
-  def route(conv, "GET", "/bears/" <> id) do
-    %{conv | status: 200, resp_body: "Bear #{1}"}
+  def route(%{method: "GET", path: "/bears/" <> id} = conv) do
+    %{conv | status: 200, resp_body: "Bear #{id}"}
   end
 
-  def route(conv, _method, path) do
-    %{conv | status: 404, resp_body: "No route #{conv.path} here!"}
+  def route(%{path: path} = conv) do
+    %{conv | status: 404, resp_body: "No route #{path} here!"}
   end
+
+  def track(%{status: 404, path: path} = conv) do
+    IO.puts "WARNING: #{path} is on the loose!"
+    conv
+  end
+
+  def track(conv), do: conv
 
   def format_response(conv) do
     """
@@ -61,51 +72,24 @@ defmodule Servy.Handler do
   end
 end
 
-request = """
-GET /wildthings HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
+# Sending requests
+paths = [
+  "/wildthings",
+  "/bears",
+  "/bears/1",
+  "/bigfoot",
+  "/wildlife"
+]
 
-"""
+Enum.each(paths, fn(path) ->
+  request = """
+  GET #{path} HTTP/1.1
+  Host: example.com
+  User-Agent: ExampleBrowser/1.0
+  Accept: */*
 
-response = Servy.Handler.handle(request)
-
-IO.puts response
-
-request = """
-GET /bears HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-
-"""
-
-response = Servy.Handler.handle(request)
-
-IO.puts response
-
-
-request = """
-GET /bigfoot HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-
-"""
-
-response = Servy.Handler.handle(request)
-
-IO.puts response
-
-request = """
-GET /bears/1 HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-
-"""
-
-response = Servy.Handler.handle(request)
-
-IO.puts response
+  """
+  request
+  |> Servy.Handler.handle
+  |> IO.puts
+end)
