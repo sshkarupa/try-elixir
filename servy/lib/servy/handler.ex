@@ -35,7 +35,6 @@ defmodule Servy.Handler do
     |> handle_file(conv)
   end
 
-  # name=Baloo&type=Brown
   def route(%Conv{method: "POST", path: "/bears", params: params} = conv) do
     %{conv | status: 201,
              resp_body: "Created a #{params["type"]} bear named #{params["name"]}!"}
@@ -119,6 +118,22 @@ Content-Type: application/x-www-form-urlencoded
 Content-Length: 21
 
 name=Baloo&type=Brown
+"""
+
+post_request
+  |> Servy.Handler.handle
+  |> IO.puts
+
+
+post_request = """
+POST /bears HTTP/1.1
+Host: example.com
+User-Agent: ExampleBrowser/1.0
+Accept: */*
+Content-Type: application/json
+Content-Length: 21
+
+name=Baloo&type=Polar
 """
 
 post_request
