@@ -1,7 +1,7 @@
 defmodule Servy.Handler do
   @moduledoc "Handles HTTP requests"
 
-  alias Servy.Conv
+  alias Servy.{Conv, BearController}
 
   import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
   import Servy.Parser, only: [parse: 1]
@@ -23,21 +23,26 @@ defmodule Servy.Handler do
     %{conv | status: 200, resp_body: "Bears, Lions, Tigers"}
   end
 
+  # Bears routes
   def route(%Conv{method: "GET", path: "/bears"} = conv) do
-    %{conv | status: 200, resp_body: "Teddy, Smokey, Paddington"}
+    BearController.index(conv)
   end
 
+   def route(%Conv{method: "GET", path: "/bears/" <> id} = conv) do
+    params = Map.put(conv.params, "id", id)
+    BearController.show(conv, params)
+  end
 
+  def route(%Conv{method: "POST", path: "/bears", params: params} = conv) do
+    BearController.create(conv, params)
+  end
+
+  # Static pages routes
   def route(%Conv{method: "GET", path: "/about"} = conv) do
     @pages_path
     |> Path.join("about.html")
     |> File.read
     |> handle_file(conv)
-  end
-
-  def route(%Conv{method: "POST", path: "/bears", params: params} = conv) do
-    %{conv | status: 201,
-             resp_body: "Created a #{params["type"]} bear named #{params["name"]}!"}
   end
 
   def handle_file({:ok, content}, %Conv{} = conv) do
@@ -66,10 +71,6 @@ defmodule Servy.Handler do
   #       %{conv | status: 500, resp_body: "File error: #{reason}"}
   #   end
   # end
-
-  def route(%Conv{method: "GET", path: "/bears/" <> id} = conv) do
-    %{conv | status: 200, resp_body: "Bear #{id}"}
-  end
 
   def route(%Conv{path: path} = conv) do
     %{conv | status: 404, resp_body: "No route #{path} here!"}
@@ -125,17 +126,17 @@ post_request
   |> IO.puts
 
 
-post_request = """
-POST /bears HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-Content-Type: application/json
-Content-Length: 21
+# post_request = """
+# POST /bears HTTP/1.1
+# Host: example.com
+# User-Agent: ExampleBrowser/1.0
+# Accept: */*
+# Content-Type: application/json
+# Content-Length: 21
 
-name=Baloo&type=Polar
-"""
+# name=Baloo&type=Polar
+# """
 
-post_request
-  |> Servy.Handler.handle
-  |> IO.puts
+# post_request
+#   |> Servy.Handler.handle
+#   |> IO.puts

@@ -9,8 +9,6 @@ defmodule Servy.Parser do
     [method, path, _] = String.split(request_line, " ")
 
     headers = parse_headers(header_lines)
-    IO.inspect headers
-
     params = parse_params(headers["Content-Type"], params_string)
 
     %Conv{
