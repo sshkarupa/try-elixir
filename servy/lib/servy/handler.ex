@@ -89,12 +89,12 @@ end
 
 # Sending requests
 paths = [
-  "/wildthings",
+  # "/wildthings",
   "/bears",
-  "/bears/1",
-  "/bigfoot",
-  "/wildlife",
-  "/about"
+  "/bears/1"
+  # "/bigfoot",
+  # "/wildlife",
+  # "/about"
 ]
 
 Enum.each(paths, fn(path) ->
