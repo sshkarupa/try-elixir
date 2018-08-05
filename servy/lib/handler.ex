@@ -6,24 +6,27 @@ defmodule Servy.Handler do
     |> format_response
   end
 
-  def parse(conv) do
-    # TODO: Parse the resuest string into map:
-    conv = %{method: "GET", path: "/wildthings", resp_body: ""}
+  def parse(request) do
+    [method, path, _] =
+      request
+      |> String.split("\n")
+      |> List.first
+      |> String.split(" ")
+
+    %{method: method, path: path, resp_body: ""}
   end
 
   def route(conv) do
-    # TODO: Create a new map that also has th response body:
-    conv = %{method: "GET", path: "/wildthings", resp_body: ""}
+    %{conv | resp_body: "Bears, Lions, Tigers"}
   end
 
   def format_response(conv) do
-    # TODO: Use values in the map to creare an HTTP response string
     """
     HTTP/1.1 200 OK
     Cntent-Type: text/html
-    Content-Lenght: 20
+    Content-Lenght: #{String.length(conv.resp_body)}
 
-    Bears, Lions, Tigers
+    #{conv.resp_body}
     """
   end
 end
