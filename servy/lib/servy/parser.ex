@@ -2,13 +2,13 @@ defmodule Servy.Parser do
   alias Servy.Conv
 
   def parse(request) do
-    [top, params_string] = String.split(request, "\n\n")
+    [top, params_string] = String.split(request, "\r\n\r\n")
 
-    [request_line | header_lines] = String.split(top, "\n")
+    [request_line | header_lines] = String.split(top, "\r\n")
 
     [method, path, _] = String.split(request_line, " ")
 
-    headers = parse_headers(header_lines)
+    headers = parse_headers(header_lines, %{})
     params = parse_params(headers["Content-Type"], params_string)
 
     %Conv{
@@ -19,7 +19,7 @@ defmodule Servy.Parser do
     }
   end
 
-  def parse_headers([head | tail], headers \\ %{}) do
+  def parse_headers([head | tail], headers) do
     [key, value] = String.split(head, ": ")
     headers = Map.put(headers, key, value)
     parse_headers(tail, headers)

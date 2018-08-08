@@ -37,24 +37,11 @@ defmodule Servy.Handler do
     BearController.create(conv, params)
   end
 
-  # Static pages routes
   def route(%Conv{method: "GET", path: "/about"} = conv) do
     @pages_path
     |> Path.join("about.html")
     |> File.read
     |> handle_file(conv)
-  end
-
-  def handle_file({:ok, content}, %Conv{} = conv) do
-    %{conv | status: 200, resp_body: content}
-  end
-
-  def handle_file({:error, :enoent}, %Conv{} = conv) do
-    %{conv | status: 404, resp_body: "File not found"}
-  end
-
-  def handle_file({:error, reason}, %Conv{} = conv) do
-    %{conv | status: 500, resp_body: "File error: #{reason}"}
   end
 
   # def route(%{method: "GET", path: "/about"} = conv) do
@@ -76,54 +63,66 @@ defmodule Servy.Handler do
     %{conv | status: 404, resp_body: "No route #{path} here!"}
   end
 
+  def handle_file({:ok, content}, %Conv{} = conv) do
+    %{conv | status: 200, resp_body: content}
+  end
+
+  def handle_file({:error, :enoent}, %Conv{} = conv) do
+    %{conv | status: 404, resp_body: "File not found"}
+  end
+
+  def handle_file({:error, reason}, %Conv{} = conv) do
+    %{conv | status: 500, resp_body: "File error: #{reason}"}
+  end
+
   def format_response(%Conv{} = conv) do
     """
-    HTTP/1.1 #{Conv.full_status(conv)}
-    Cntent-Type: text/html
-    Content-Lenght: #{String.length(conv.resp_body)}
-
+    HTTP/1.1 #{Conv.full_status(conv)}\r
+    Content-Type: text/html\r
+    Content-Length: #{String.length(conv.resp_body)}\r
+    \r
     #{conv.resp_body}
     """
   end
 end
 
 # Sending requests
-paths = [
+# paths = [
   # "/wildthings",
-  "/bears",
-  "/bears/1"
+  # "/bears",
+  # "/bears/1"
   # "/bigfoot",
   # "/wildlife",
   # "/about"
-]
+# ]
 
-Enum.each(paths, fn(path) ->
-  request = """
-  GET #{path} HTTP/1.1
-  Host: example.com
-  User-Agent: ExampleBrowser/1.0
-  Accept: */*
+# Enum.each(paths, fn(path) ->
+#   request = """
+#   GET #{path} HTTP/1.1
+#   Host: example.com
+#   User-Agent: ExampleBrowser/1.0
+#   Accept: */*
 
-  """
-  request
-  |> Servy.Handler.handle
-  |> IO.puts
-end)
+#   """
+#   request
+#   |> Servy.Handler.handle
+#   |> IO.puts
+# end)
 
-post_request = """
-POST /bears HTTP/1.1
-Host: example.com
-User-Agent: ExampleBrowser/1.0
-Accept: */*
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 21
+# post_request = """
+# POST /bears HTTP/1.1
+# Host: example.com
+# User-Agent: ExampleBrowser/1.0
+# Accept: */*
+# Content-Type: application/x-www-form-urlencoded
+# Content-Length: 21
 
-name=Baloo&type=Brown
-"""
+# name=Baloo&type=Brown
+# """
 
-post_request
-  |> Servy.Handler.handle
-  |> IO.puts
+# post_request
+#   |> Servy.Handler.handle
+#   |> IO.puts
 
 
 # post_request = """
