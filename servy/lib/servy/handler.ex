@@ -1,7 +1,7 @@
 defmodule Servy.Handler do
   @moduledoc "Handles HTTP requests"
 
-  alias Servy.{Conv, BearController, VideoCam}
+  alias Servy.{Conv, BearController, VideoCam, Fetcher}
 
   import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
   import Servy.Parser, only: [parse: 1]
@@ -19,20 +19,17 @@ defmodule Servy.Handler do
     |> format_response
   end
 
-  def route(%Conv{method: "GET", path: "/snapshots"} = conv) do
-    caller = self()
+  def route(%Conv{method: "GET", path: "/sensors"} = conv) do
+    pid = Fetcher.async(fn -> Servy.Tracker.get_location("bigfoot") end)
 
-    spawn(fn -> send(caller, {:result, VideoCam.get_snapshot("cam-1")}) end)
-    spawn(fn -> send(caller, {:result, VideoCam.get_snapshot("cam-2")}) end)
-    spawn(fn -> send(caller, {:result, VideoCam.get_snapshot("cam-3")}) end)
+    snapshots =
+      ["cam1", "cam2", "cam3"]
+      |> Enum.map(&Fetcher.async(fn -> VideoCam.get_snapshot(&1) end))
+      |> Enum.map(&Fetcher.get_result/1)
 
-    snapshot1 = receive do {:result, filename} -> filename end
-    snapshot2 = receive do {:result, filename} -> filename end
-    snapshot3 = receive do {:result, filename} -> filename end
+    where_is_bigfoot = Fetcher.get_result(pid)
 
-    snapshots = [snapshot1, snapshot2, snapshot3 ]
-
-    %{conv | status: 200, resp_body: inspect snapshots}
+    %{conv | status: 200, resp_body: inspect {snapshots, where_is_bigfoot}}
   end
 
   def route(%Conv{method: "GET", path: "/kaboom"} = conv) do
