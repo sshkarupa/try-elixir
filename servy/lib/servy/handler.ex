@@ -1,7 +1,7 @@
 defmodule Servy.Handler do
   @moduledoc "Handles HTTP requests"
 
-  alias Servy.{Conv, BearController, VideoCam, Fetcher}
+  alias Servy.{Conv, BearController, VideoCam, Fetcher, PledgeController}
 
   import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
   import Servy.Parser, only: [parse: 1]
@@ -19,6 +19,15 @@ defmodule Servy.Handler do
     |> format_response
   end
 
+  def route(%Conv{method: "GET", path: "/pledges"} = conv) do
+    PledgeController.index(conv)
+  end
+
+  def route(%Conv{method: "POST", path: "/pledges"} = conv) do
+    IO.puts "#{inspect conv}"
+    PledgeController.create(conv, conv.params)
+  end
+
   def route(%Conv{method: "GET", path: "/sensors"} = conv) do
     task = Task.async(fn -> Servy.Tracker.get_location("bigfoot") end)
 
@@ -32,7 +41,7 @@ defmodule Servy.Handler do
     %{conv | status: 200, resp_body: inspect {snapshots, where_is_bigfoot}}
   end
 
-  def route(%Conv{method: "GET", path: "/kaboom"} = conv) do
+  def route(%Conv{method: "GET", path: "/kaboom"} = _conv) do
     raise "Kaboom!"
   end
 
