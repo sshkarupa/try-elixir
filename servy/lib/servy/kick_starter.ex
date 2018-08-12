@@ -20,7 +20,8 @@ defmodule Servy.KickStarter do
 
   defp start_server do
     IO.puts "Starting the HTTP server..."
-    server_pid = spawn_link(Servy.HttpServer, :server, [4000])
+    port = Application.get_env(:servy, :port)
+    server_pid = spawn_link(Servy.HttpServer, :server, [port])
     Process.register(server_pid, :http_server)
     server_pid
   end
