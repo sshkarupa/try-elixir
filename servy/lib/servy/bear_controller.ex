@@ -15,12 +15,12 @@ defmodule Servy.BearController do
     render(conv, "show.html.eex", bear: bear)
   end
 
-  def create(conv, %{"name" => name, "type" => type} = params) do
+  def create(conv, %{"name" => name, "type" => type} = _params) do
     %{conv | status: 201,
              resp_body: "Created a #{type} bear named #{name}!"}
   end
 
-  defp render(conv, template, binding \\ []) do
+  defp render(conv, template, binding) do
     content =
       @templates_path
       |> Path.join(template)

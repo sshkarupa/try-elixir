@@ -1,7 +1,7 @@
-defmodule Servy.SenserServer do
+defmodule Servy.SensorServer do
   use GenServer
 
-  @name :senser_server
+  @name :sensor_server
   @refresh_interval :timer.minutes(60) # :timer.seconds(5)
 
   def start_link(_args ) do

@@ -1,7 +1,7 @@
 defmodule Servy.Handler do
   @moduledoc "Handles HTTP requests"
 
-  alias Servy.{Conv, BearController, VideoCam, Fetcher, PledgeController}
+  alias Servy.{Conv, BearController, PledgeController}
 
   import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
   import Servy.Parser, only: [parse: 1]
@@ -13,7 +13,7 @@ defmodule Servy.Handler do
     request
     |> parse
     |> rewrite_path
-    # |> log
+    |> log
     |> route
     |> track
     |> format_response
@@ -29,7 +29,7 @@ defmodule Servy.Handler do
   end
 
   def route(%Conv{method: "GET", path: "/sensors"} = conv) do
-    sensor_data = Servy.SensorServer.get_sensor_data
+    sensor_data = Servy.SensorServer.get_sensor_data()
     %{conv | status: 200, resp_body: inspect sensor_data}
   end
 
